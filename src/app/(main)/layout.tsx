@@ -220,7 +220,6 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
                     </div>
 
                     <div className="layout-content">
-
                         {children}
                     </div>
                 </div>
