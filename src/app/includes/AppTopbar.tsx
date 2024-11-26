@@ -34,6 +34,13 @@ export default function AppTopbar() {
         console.log('botón menú mobile');
     };
 
+
+    const onRightMenuButtonClick = () => {
+        // showRightSidebar();
+        console.log('botón menú derecha');
+
+    };
+
     const focusSearchInput = () => {
         setTimeout(() => {
             (searchInputRef.current as any).focus();
@@ -350,7 +357,11 @@ export default function AppTopbar() {
                             </div>
                         </li>
 
-
+                        <li>
+                            <a onClick={onRightMenuButtonClick} className="p-ripple">
+                                <i className="pi pi-arrow-left"></i>
+                            </a>
+                        </li>
                     </ul>
                 </div>
             </div>
