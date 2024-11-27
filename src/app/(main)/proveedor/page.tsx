@@ -1,126 +1,175 @@
 'use client';
+import { useRouter } from 'next/navigation';
+import { FilterMatchMode, FilterOperator } from 'primereact/api';
 import { Button } from 'primereact/button';
 import { Dropdown } from 'primereact/dropdown';
-import { FileUpload } from 'primereact/fileupload';
 import { InputText } from 'primereact/inputtext';
-import { InputTextarea } from 'primereact/inputtextarea';
-import React, { useEffect, useState } from 'react';
-import type { Demo } from '@/app/utilities/types';
+import { Column } from 'primereact/column';
+import { Tag } from 'primereact/tag';
+import { Toast } from 'primereact/toast';
+import { Dialog } from 'primereact/dialog';
+import { DataTable, DataTableFilterMeta } from 'primereact/datatable';
+import React, { useEffect, useRef, useState } from 'react';
+import { api } from '@/app/services/api';
+import { Proveedores, Proveedor } from '@/app/types/Proveedor';
 
-export default function Proveedor() {
-    const [countries, setCountries] = useState<Demo.Country[]>([]);
-    const [selectedCountry, setSelectedCountry] = useState<Demo.Country | {}>({});
-    useEffect(() => {
-        setCountries([
-            { name: 'Australia', code: 'AU' },
-            { name: 'Brazil', code: 'BR' },
-            { name: 'China', code: 'CN' },
-            { name: 'Egypt', code: 'EG' },
-            { name: 'France', code: 'FR' },
-            { name: 'Germany', code: 'DE' },
-            { name: 'India', code: 'IN' },
-            { name: 'Japan', code: 'JP' },
-            { name: 'Spain', code: 'ES' },
-            { name: 'United States', code: 'US' }
-        ]);
-    }, []);
+export default function Proveedores() {
 
-    const itemTemplate = (option: Demo.Country) => {
+    let emptySupplier: Proveedor = {
+        proveedorID: 0,
+        nombreProveedor: '',
+        razonSocial: '',
+        estado: '',
+        municipio: '',
+        celular: '',
+    };
+
+    const [globalFilterValue, setGlobalFilterValue] = useState('');
+    const router = useRouter();
+    const dt = useRef(null);
+    const [suppliers, setSuppliers] = useState([]);
+    const [supplier, setSupplier] = useState(emptySupplier);
+    const [deleteProductDialog, setDeleteProductDialog] = useState(false);
+    const toast = useRef(null);
+
+    const onGlobalFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { value } = e.target;
+        // let _filters = { ...filters };
+        // (_filters['global'] as any).value = value;
+        // setFilters(_filters);
+        setGlobalFilterValue(value);
+    };
+
+    const getSuppliers = async () => {
+        try {
+            const { data } = await api.get('proveedores?numeroPagina=1&registrosPorPagina=10');
+
+            console.log(data.data);
+
+
+            setSuppliers(data.data);
+
+            data.data as Proveedores;
+        } catch (err) {
+            // const { estatus, mensaje } = err.response.data;
+            // setError(mensaje);
+            console.log(err);
+
+        }
+    };
+
+    const hideDeleteProductDialog = () => {
+        setDeleteProductDialog(false);
+    };
+
+    // const renderHeader = () => {
+    //     return (
+    //         <div className="flex flex-wrap gap-2 align-items-center justify-content-between">
+    //             <span className="p-input-icon-left w-full sm:w-20rem flex-order-1 sm:flex-order-0">
+    //                 <i className="pi pi-search"></i>
+    //                 <InputText value={globalFilterValue} onChange={onGlobalFilterChange} placeholder="Global Search" className="w-full" />
+    //             </span>
+    //             <Button type="button" icon="pi pi-plus-circle" label="Nuevo proveedor" outlined className="w-full sm:w-auto flex-order-0 sm:flex-order-1" onClick={() => router.push('/proveedor/nuevo')} />
+    //         </div>
+    //     );
+    // };
+
+    // const statusBodyTemplate = (rowData: Proveedores) => {
+    //     return <Tag>hola</Tag>;
+    // };
+
+    const actionBodyTemplate = (Proveedores) => {
         return (
-            <div className="flex align-items-center">
-                <img
-                    src={`/demo/images/flag/flag_placeholder.png`}
-                    onError={(e) => ((e.target as HTMLImageElement).src = 'https://www.primefaces.org/wp-content/uploads/2020/05/placeholder.png')}
-                    className={'mr-2 flag flag-' + option.code.toLowerCase()}
-                    style={{ width: '18px' }}
-                    alt={option.name}
-                />
-                <div>{option.name}</div>
-            </div>
+            <React.Fragment>
+                <Button icon="pi pi-pencil" rounded outlined className="mr-2" onClick={() => editSupplier(Proveedores)} />
+                <Button icon="pi pi-trash" rounded outlined severity="danger" onClick={() => confirmDeleteProduct(Proveedores)} />
+            </React.Fragment>
         );
     };
 
-    return (
-        // <div className="card">
-        //     <span className="text-900 text-xl font-bold mb-4 block">Create User</span>
-        //     <div className="grid">
-        //         <div className="col-12 lg:col-2">
-        //             <div className="text-900 font-medium text-xl mb-3">Profile</div>
-        //             <p className="m-0 p-0 text-600 line-height-3 mr-3">Odio euismod lacinia at quis risus sed vulputate odio.</p>
-        //         </div>
+    const editSupplier = (Proveedor) => {
 
-        //         <div className="col-12 lg:col-10">
-        //             <div className="grid formgrid p-fluid">
-        //                 <div className="field mb-4 col-12">
-        //                     <label htmlFor="nickname" className="font-medium text-900">Nickname</label>
-        //                     <input className="p-inputtext p-component" id="nickname" type="text" data-pc-name="inputtext" data-pc-section="root" />
-        //                 </div>
-        //             </div>
-        //         </div>
-        //     </div>
-        // </div>
+        console.log(Proveedor);
+
+        // setProduct({ ...product });
+        // setProductDialog(true);
+    };
+
+    const confirmDeleteProduct = (Proveedor) => {
+        setSupplier(Proveedor);
+        setDeleteProductDialog(true);
+    };
+
+    const deleteProduct = () => {
+        let _products = suppliers.filter((val) => val.id !== product.id);
+
+        setSuppliers(_products);
+        setDeleteProductDialog(false);
+        // setProduct(emptyProduct);
+        toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Product Deleted', life: 3000 });
+    };
+
+    // const header = renderHeader();
+
+    useEffect(() => {
+        getSuppliers();
+    }, []);
+
+
+
+
+    const header = (
+        <div className="flex flex-wrap gap-2 align-items-center justify-content-between">
+            <span className="p-input-icon-left w-full sm:w-20rem flex-order-1 sm:flex-order-0">
+                <i className="pi pi-search"></i>
+                <InputText value={globalFilterValue} onChange={onGlobalFilterChange} placeholder="Global Search" className="w-full" />
+            </span>
+            <Button type="button" icon="pi pi-plus-circle" label="Nuevo proveedor" outlined className="w-full sm:w-auto flex-order-0 sm:flex-order-1" onClick={() => router.push('/proveedor/nuevo')} />
+        </div>
+    );
+
+    const deleteProductDialogFooter = (
+        <>
+            <Button label="No" icon="pi pi-times" text onClick={hideDeleteProductDialog} />
+            <Button label="Sí" icon="pi pi-check" text onClick={deleteProduct} />
+        </>
+    );
+
+    return (
         <div className="card">
-            <span className="text-900 text-xl font-bold mb-4 block">Crear proveedor</span>
-            <div className="grid">
-                <div className="col-12 lg:col-2">
-                    <div className="text-900 font-medium text-xl mb-3">Prueba</div>
-                    <p className="m-0 p-0 text-600 line-height-3 mr-3">Esta es un prueba</p>
+            <DataTable
+                // ref={dt}
+                value={suppliers}
+                header={header}
+                paginator
+                rows={10}
+                responsiveLayout="scroll"
+                currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
+                rowsPerPageOptions={[10, 25, 50]}
+            // filters={filters}x
+            >
+                <Column field="nombreProveedor" header="Nombre"></Column>
+                <Column field="celular" header="Celular"></Column>
+                <Column field="municipio" header="Municipio"></Column>
+                <Column field="Acciones" body={actionBodyTemplate} exportable={false} style={{ minWidth: '12rem' }}></Column>
+
+                {/* <Column field="name" header="Name" sortable body={nameBodyTemplate} headerClassName="white-space-nowrap" style={{ width: '25%' }}></Column> */}
+                {/* <Column field="country.name" header="Country" sortable body={countryBodyTemplate} headerClassName="white-space-nowrap" style={{ width: '25%' }}></Column>
+                <Column field="date" header="Join Date" sortable body={dateBodyTemplate} headerClassName="white-space-nowrap" style={{ width: '25%' }}></Column>
+                <Column field="representative.name" header="Created By" body={createdByBodyTemplate} headerClassName="white-space-nowrap" style={{ width: '25%' }} sortable></Column>
+                <Column field="activity" header="Activity" body={activityBodyTemplate} headerClassName="white-space-nowrap" style={{ width: '25%' }} sortable></Column> */}
+            </DataTable>
+
+            <Dialog visible={deleteProductDialog} style={{ width: '450px' }} header="Confirmar" modal footer={deleteProductDialogFooter} onHide={hideDeleteProductDialog}>
+                <div className="flex align-items-center justify-content-center">
+                    <i className="pi pi-exclamation-triangle mr-3" style={{ fontSize: '2rem' }} />
+                    {supplier && (
+                        <span>
+                            ¿Estás seguro de que quieres eliminar a <b>{supplier.nombreProveedor}</b>?
+                        </span>
+                    )}
                 </div>
-                <div className="col-12 lg:col-10">
-                    <div className="grid formgrid p-fluid">
-                        <div className="field mb-4 col-12">
-                            <label htmlFor="nickname" className="font-medium text-900">
-                                Nickname
-                            </label>
-                            <InputText id="nickname" type="text" />
-                        </div>
-                        <div className="field mb-4 col-12">
-                            <label htmlFor="bio" className="font-medium text-900">
-                                Bio
-                            </label>
-                            <InputTextarea id="bio" rows={5} autoResize></InputTextarea>
-                        </div>
-                        <div className="field mb-4 col-12 md:col-6">
-                            <label htmlFor="email" className="font-medium text-900">
-                                Email
-                            </label>
-                            <InputText id="email" type="text" />
-                        </div>
-                        <div className="field mb-4 col-12 md:col-6">
-                            <label htmlFor="country" className="font-medium text-900">
-                                Country
-                            </label>
-                            <Dropdown
-                                inputId="country"
-                                options={countries}
-                                itemTemplate={itemTemplate}
-                                onChange={(e) => setSelectedCountry(e.value)}
-                                value={selectedCountry}
-                                optionLabel="name"
-                                filter
-                                filterBy="name"
-                                showClear
-                                placeholder="Select a Country"
-                            />
-                        </div>
-                        <div className="field mb-4 col-12 md:col-6">
-                            <label htmlFor="city" className="font-medium text-900">
-                                Ciudad
-                            </label>
-                            <InputText id="city" type="text" />
-                        </div>
-                        <div className="field mb-4 col-12 md:col-6">
-                            <label htmlFor="state" className="font-medium text-900">
-                                Estado
-                            </label>
-                            <InputText id="state" type="text" />
-                        </div>
-                        <div className="col-12">
-                            <Button label="Crear proveedor" className="w-auto mt-3"></Button>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            </Dialog>
         </div>
     );
 }
