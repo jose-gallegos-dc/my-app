@@ -2,10 +2,8 @@
 import { useRouter } from 'next/navigation';
 import { FilterMatchMode, FilterOperator } from 'primereact/api';
 import { Button } from 'primereact/button';
-import { Dropdown } from 'primereact/dropdown';
 import { InputText } from 'primereact/inputtext';
 import { Column } from 'primereact/column';
-import { Tag } from 'primereact/tag';
 import { Toast } from 'primereact/toast';
 import { Dialog } from 'primereact/dialog';
 import { DataTable, DataTableFilterMeta } from 'primereact/datatable';
@@ -29,7 +27,7 @@ export default function Proveedores() {
     const dt = useRef(null);
     const [suppliers, setSuppliers] = useState([]);
     const [supplier, setSupplier] = useState(emptySupplier);
-    const [deleteProductDialog, setDeleteProductDialog] = useState(false);
+    const [deleteProductDialog, setDeleteSupplierDialog] = useState(false);
     const toast = useRef(null);
 
     const onGlobalFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -51,72 +49,52 @@ export default function Proveedores() {
 
             data.data as Proveedores;
         } catch (err) {
-            // const { estatus, mensaje } = err.response.data;
-            // setError(mensaje);
             console.log(err);
 
         }
     };
 
     const hideDeleteProductDialog = () => {
-        setDeleteProductDialog(false);
+        setDeleteSupplierDialog(false);
     };
 
-    // const renderHeader = () => {
-    //     return (
-    //         <div className="flex flex-wrap gap-2 align-items-center justify-content-between">
-    //             <span className="p-input-icon-left w-full sm:w-20rem flex-order-1 sm:flex-order-0">
-    //                 <i className="pi pi-search"></i>
-    //                 <InputText value={globalFilterValue} onChange={onGlobalFilterChange} placeholder="Global Search" className="w-full" />
-    //             </span>
-    //             <Button type="button" icon="pi pi-plus-circle" label="Nuevo proveedor" outlined className="w-full sm:w-auto flex-order-0 sm:flex-order-1" onClick={() => router.push('/proveedor/nuevo')} />
-    //         </div>
-    //     );
-    // };
-
-    // const statusBodyTemplate = (rowData: Proveedores) => {
-    //     return <Tag>hola</Tag>;
-    // };
 
     const actionBodyTemplate = (Proveedores) => {
         return (
             <React.Fragment>
                 <Button icon="pi pi-pencil" rounded outlined className="mr-2" onClick={() => editSupplier(Proveedores)} />
-                <Button icon="pi pi-trash" rounded outlined severity="danger" onClick={() => confirmDeleteProduct(Proveedores)} />
+                <Button icon="pi pi-trash" rounded outlined severity="danger" onClick={() => confirmDeleteSupplier(Proveedores)} />
             </React.Fragment>
         );
     };
 
     const editSupplier = (Proveedor) => {
-
-        console.log(Proveedor);
-
-        // setProduct({ ...product });
-        // setProductDialog(true);
+        router.push(`/proveedor/${Proveedor.proveedorID}/editar`)
     };
 
-    const confirmDeleteProduct = (Proveedor) => {
+    const confirmDeleteSupplier = (Proveedor) => {
         setSupplier(Proveedor);
-        setDeleteProductDialog(true);
+        setDeleteSupplierDialog(true);
     };
 
-    const deleteProduct = () => {
-        let _products = suppliers.filter((val) => val.id !== product.id);
+    const deleteSupplier = async () => {
+        console.log(supplier);
 
-        setSuppliers(_products);
-        setDeleteProductDialog(false);
-        // setProduct(emptyProduct);
-        toast.current.show({ severity: 'success', summary: 'Successful', detail: 'Product Deleted', life: 3000 });
+        const { data } = await api.delete(`proveedores/${supplier.proveedorID}`);
+
+        console.log(data);
+
+
+        let _suppliers = suppliers.filter((val) => val.proveedorID !== supplier.proveedorID);
+
+        setSuppliers(_suppliers);
+        setDeleteSupplierDialog(false);
+        setSupplier(emptySupplier);
     };
-
-    // const header = renderHeader();
 
     useEffect(() => {
         getSuppliers();
     }, []);
-
-
-
 
     const header = (
         <div className="flex flex-wrap gap-2 align-items-center justify-content-between">
@@ -131,7 +109,7 @@ export default function Proveedores() {
     const deleteProductDialogFooter = (
         <>
             <Button label="No" icon="pi pi-times" text onClick={hideDeleteProductDialog} />
-            <Button label="Sí" icon="pi pi-check" text onClick={deleteProduct} />
+            <Button label="Sí" icon="pi pi-check" text onClick={deleteSupplier} />
         </>
     );
 

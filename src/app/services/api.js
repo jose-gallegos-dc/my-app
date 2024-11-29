@@ -14,7 +14,7 @@ export const api = axios.create({
 api.interceptors.request.use((config) => {
     // const token = localStorage.getItem('token');
 
-    const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyIiwianRpIjoiYzFiY2Q3MzctYThhYi00NDRmLWE0ZjMtZTA5YWY3M2UwMmU4IiwiaWF0IjoxNzMyNzQ4MDg2LCJleHAiOjE3MzI3NTQwODYsImlzcyI6Imh0dHBzOi8vbG9jYWxob3N0OjcwODYiLCJhdWQiOiJodHRwczovL2xvY2FsaG9zdDo3MDg2In0.br1L9Zh7yCot3X1ph77Cr3O6t4W3OtFGI-jrhNM40GU";
+    const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyIiwianRpIjoiNjY3MTI3ZDUtOTk5YS00NjA3LWI1MTQtMWI4YWFmYWQ5NTg3IiwiaWF0IjoxNzMyOTExOTUwLCJleHAiOjE3MzI5MTc5NTAsImlzcyI6Imh0dHBzOi8vbG9jYWxob3N0OjcwODYiLCJhdWQiOiJodHRwczovL2xvY2FsaG9zdDo3MDg2In0.DdubbVmJdpBIQRfo3Ir3UJYW7fQMgC5k4vL4J45KKWM";
 
     if (token) {
         config.headers.Authorization = `Bearer ${token}`;

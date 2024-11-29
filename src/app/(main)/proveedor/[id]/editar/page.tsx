@@ -6,9 +6,9 @@ import { InputTextarea } from 'primereact/inputtextarea';
 import React, { useEffect, useState } from 'react';
 import { api } from '@/app/services/api';
 import { Proveedores, Proveedor } from '@/app/types/Proveedor';
-import { useRouter } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 
-export default function ProveedorNuevo() {
+export default function ProveedorEdicion() {
     const [nombreProveedor, setNombreProveedor] = useState('');
     const [razonSocial, setRazonSocial] = useState('');
     const [selectedEstado, setSelectedEstado] = useState(null);
@@ -17,11 +17,37 @@ export default function ProveedorNuevo() {
     const [estados, setEstados] = useState([]); // Lista de estados
     const [ciudades, setCiudades] = useState([]); // Lista de ciudades/municipios
     const router = useRouter();
-    const saveSupplier = async (e) => {
+
+    const { id } = useParams();
+
+    // const getSupplier = async () => {
+    //     try {
+    //         const { data } = await api.get(`proveedores/${id}`);
+    //         const supplierData = data.data;
+
+    //         console.log(supplierData);
+
+
+    //         setNombreProveedor(supplierData.nombreProveedor);
+    //         setRazonSocial(supplierData.razonSocial);
+    //         setCelular(supplierData.celular);
+
+    //         // Aquí encuentra el estadoID que corresponde al nombre del estado.
+    //         const estadoSeleccionado = estados.find(est => est.nombre === supplierData.estado);
+    //         setSelectedEstado(estadoSeleccionado);
+
+    //         const ciudadSeleccionado = ciudades.find(ciu => ciu.nombre === supplierData.municipio);
+    //         setSelectedMunicipio(ciudadSeleccionado);
+    //     } catch (err) {
+    //         console.log(err);
+    //     }
+    // };
+
+    const updateSupplier = async (e) => {
         e.preventDefault();
 
         try {
-            const { data } = await api.post('proveedores', {
+            const { data } = await api.put(`proveedores/${id}`, {
                 nombreProveedor: nombreProveedor,
                 razonSocial: razonSocial,
                 estado: selectedEstado.nombre,
@@ -40,9 +66,6 @@ export default function ProveedorNuevo() {
         try {
             const { data } = await api.get('estados');
 
-
-            console.log(data.data);
-
             setEstados(data.data);
         } catch (err) {
             console.log(err);
@@ -53,6 +76,9 @@ export default function ProveedorNuevo() {
         try {
             const { data } = await api.get(`ciudades/${selectedEstado.estadoID}`);
             setCiudades(data.data);
+
+            console.log(data.data);
+
 
         } catch (err) {
             console.log(err);
@@ -69,19 +95,60 @@ export default function ProveedorNuevo() {
         if (selectedEstado) {
             getCiudades();
         }
-
-        // console.log(selectedEstado);
     }, [selectedEstado]);
+
+    // Ejecuta la carga del proveedor al montar el componente
+    // useEffect(() => {
+    //     if (estados.length > 0) {
+    //         getSupplier();
+    //     }
+    // }, [estados]);
+
+    useEffect(() => {
+        const loadSupplier = async () => {
+            try {
+                const { data } = await api.get(`proveedores/${id}`);
+                const supplierData = data.data;
+
+                setNombreProveedor(supplierData.nombreProveedor);
+                setRazonSocial(supplierData.razonSocial);
+                setCelular(supplierData.celular);
+
+                // Encuentra y establece el estado preseleccionado
+                const estadoSeleccionado = estados.find(est => est.nombre === supplierData.estado);
+                setSelectedEstado(estadoSeleccionado);
+
+                if (estadoSeleccionado) {
+                    // Carga las ciudades del estado seleccionado
+                    const ciudadesResponse = await api.get(`ciudades/${estadoSeleccionado.estadoID}`);
+                    setCiudades(ciudadesResponse.data.data);
+
+                    // Encuentra y establece el municipio preseleccionado
+                    const ciudadSeleccionado = ciudadesResponse.data.data.find(
+                        ciu => ciu.nombre === supplierData.municipio
+                    );
+                    setSelectedMunicipio(ciudadSeleccionado);
+                }
+            } catch (err) {
+                console.log(err);
+            }
+        };
+
+        if (estados.length > 0) {
+            loadSupplier();
+        }
+    }, [estados]);
+
 
     return (
         <div className="card">
-            <span className="text-900 text-xl font-bold mb-4 block">Crear proveedor</span>
+            <span className="text-900 text-xl font-bold mb-4 block">Editar proveedor</span>
             <div className="grid">
                 <div className="col-12 lg:col-2">
                     <div className="text-900 font-medium text-xl mb-3">Prueba</div>
                     <p className="m-0 p-0 text-600 line-height-3 mr-3">Esta es un prueba</p>
                 </div>
-                <form onSubmit={saveSupplier}>
+                <form onSubmit={updateSupplier}>
                     <div className="col-12 lg:col-10">
                         <div className="grid formgrid p-fluid">
                             <div className="field mb-4 col-12">
@@ -142,7 +209,7 @@ export default function ProveedorNuevo() {
                             </div>
 
                             <div className="col-12">
-                                <Button type="submit" label="Crear proveedor" className="w-auto mt-3"></Button>
+                                <Button type="submit" label="Actualizar proveedor" className="w-auto mt-3"></Button>
                             </div>
                         </div>
                     </div>
